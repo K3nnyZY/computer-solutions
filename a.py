@@ -1,60 +1,53 @@
-import sympy
-import math
 import numpy as np
+import sympy as sp
 import matplotlib.pyplot as plt
 
-# Definimos la función f(x) = xln(x)
-x = sympy.Symbol('x')
-f = x*sympy.log(x)
+# Definir la función f(x)
+x = sp.symbols('x')
+f = x*sp.log(x)
 
-# Calculamos f'(x) utilizando las fórmulas de diferencias finitas
-def progresiva(h):
-    return sympy.diff_finite(f, 1, h, 1)
+# Calcular la derivada de f(x)
+df = sp.diff(f, x)
 
-def regresiva(h):
-    return sympy.diff_finite(f, 1, -h, 1)
+# Definir el valor de x0
+x0 = 1
 
-def central(h):
-    return sympy.diff_finite(f, 1, h, 2)
+# Calcular f'(x0)
+exact = df.subs(x, x0)
 
-# Calculamos f'(1) para diferentes valores de h
-h_values = [0.1, 0.05, 0.025, 0.0125, 0.00625]
+# Definir una lista de valores de h
+h_values = [0.1,0.001,0.00001,0.0001,0.011]
 
+# Inicializar listas para guardar los errores
+error_prog = []
+error_reg = []
+
+# Calcular los errores para cada valor de h
 for h in h_values:
-    fp = progresiva(h).evalf()
-    fr = regresiva(h).evalf()
-    fc = central(h).evalf()
-    error_p = fp - math.log(1)
-    error_r = fr - math.log(1)
-    error_c = fc - math.log(1)
-    print(f"h={h:.5f}:\t progresiva={fp:.5f} error={error_p:.5f}\t regresiva={fr:.5f} error={error_r:.5f}\t central={fc:.5f} error={error_c:.5f}")
+    # Fórmula de diferencias progresivas
+    f_prog = (4*f.subs(x, x0+h) - 3*f.subs(x, x0) - f.subs(x, x0+2*h)) / (2*h)
+    error_prog.append(f_prog)
 
-# Graficamos los errores en función de h
-h_values = np.logspace(-4, -1, num=50)
-error_progresiva = []
-error_regresiva = []
-error_central = []
+    # Fórmula de diferencias regresivas
+    f_reg = (f.subs(x, x0) - 4*f.subs(x, x0-h) + 3*f.subs(x, x0-2*h)) / (2*h)
+    error_reg.append(abs(exact - f_reg))
 
-for h in h_values:
-    fp = progresiva(h).evalf()
-    fr = regresiva(h).evalf()
-    fc = central(h).evalf()
-    error_p = abs(fp - math.log(1))
-    error_r = abs(fr - math.log(1))
-    error_c = abs(fc - math.log(1))
-    error_progresiva.append(error_p)
-    error_regresiva.append(error_r)
-    error_central.append(error_c)
+print(error_prog)
 
-plt.loglog(h_values, error_progresiva, label='Progresiva')
-plt.loglog(h_values, error_regresiva, label='Regresiva')
-plt.loglog(h_values, error_central, label='Central')
-plt.xlabel('h')
-plt.ylabel('Error')
+# Encontrar el valor de h que minimiza el error
+min_error = min(error_prog + error_reg)
+min_index = error_prog.index(min_error) if min_error in error_prog else error_reg.index(min_error)
+h_min = h_values[min_index]
+
+# Graficar los errores en función de h
+plt.loglog(h_values, error_prog, label='Progresivas')
+plt.loglog(h_values, error_reg, label='Regresivas')
+plt.scatter(h_min, min_error, color='red', label=f'Mínimo error: h={h_min:.2e}')
 plt.legend()
+plt.xlabel('h')
+plt.ylabel('Error absoluto')
+plt.title('Errores de las fórmulas de diferencias progresivas y regresivas')
 plt.show()
 
-# Buscamos el valor de h que minimiza el error
-min_index = np.argmin(error_central)
-h_min = h_values[min_index]
-print(f"h_min = {h_min:.5f}")
+print(f"El valor de f'(1) es: {exact.evalf()}")
+print(f"El valor de h que minimiza el error es: {h_min:.2e}")
