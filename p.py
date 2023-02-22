@@ -2,4 +2,9 @@ from numpy import *
 import math as mt
 import sympy as sp
 
-result = [i**2 for i in range(1,11)]
+x= sp.Symbol("x")
+f = sp.sin(x)/x
+
+print(cos(0.18)/0.18 - sp.sin(0.18)/0.18**2)
+
+print(-sin(0.18)/0.18 - 2*cos(0.18)/0.18**2 + 2*sin(0.18)/0.18**3)
